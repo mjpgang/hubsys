@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #000;
+    --panel: #080808;
+    --panel-2: #0c0c0c;
+    --line: #1c1c1c;
+    --line-soft: #141414;
+    --text: #eee;
+    --muted: #666;
+    --muted-2: #444;
+    --hover: #111;
+    --active: #161616;
+    --input: #0e0e0e;
+    --accent: #eee;
+    --online: #5a8f6a;
+    --offline: #3a3a3a;
+    --red: #c45c5c;
+    --radius: 6px;
+    --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur: .22s;
+    --dur-slow: .35s;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  /* disable browser blue focus / tap highlight everywhere */
+  *, *::before, *::after {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  a, button, input, textarea, select, [onclick], .channel-item, .member-item, .msg-group, .msg-image {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+  a:focus, button:focus, input:focus, textarea:focus, select:focus,
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none;
+  }
+  /* soft custom focus only where useful */
+  input:focus-visible, textarea:focus-visible {
+    border-color: #333 !important;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 3px;
+    transition: background var(--dur) var(--ease);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #333; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* keyframes */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulseSoft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .55; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    z-index: 100;
+    animation: fadeIn var(--dur-slow) var(--ease-out);
+  }
+  .login-box {
+    width: 400px;
+    max-width: 90vw;
+    padding: 40px 36px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    animation: fadeScale var(--dur-slow) var(--ease-out);
+  }
+  .login-box .eyebrow {
+    font-size: 11px;
+    color: #555;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .login-box h1 {
+    color: var(--text);
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -.04em;
+    margin-bottom: 10px;
+  }
+  .login-box p.sub {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .login-box input {
+    width: 100%;
+    background: var(--input);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 11px 12px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    font-family: var(--font);
+    transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .login-box input:focus {
+    border-color: #333;
+    background: #101010;
+  }
+  .login-box button {
+    width: 100%;
+    background: var(--text);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 560;
+    letter-spacing: -.01em;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .login-box button:hover { opacity: .88; }
+  .login-box button:active { transform: scale(0.985); }
+  .login-box button:disabled { opacity: .4; cursor: default; transform: none; }
+  #login-error {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 12px;
+    min-height: 16px;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  /* ---------- BOOT ERROR ---------- */
+  #boot-error-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn var(--dur-slow) var(--ease-out);
+  }
+  .boot-error-box {
+    width: 420px; max-width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--red);
+    border-radius: 8px;
+    padding: 24px;
+    animation: fadeUp var(--dur-slow) var(--ease-out);
+  }
+  .boot-error-box h2 { color: var(--red); font-size: 14px; font-weight: 600; margin-bottom: 8px; letter-spacing: -.01em; }
+  .boot-error-box p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+  /* ---------- APP LAYOUT ---------- */
+  #app {
+    display: none;
+    height: 100vh;
+    grid-template-columns: 56px 220px 1fr 220px;
+    grid-template-rows: 100vh;
+    animation: fadeIn var(--dur-slow) var(--ease-out);
+  }
+  #app.active { display: grid; }
+
+  #server-rail {
+    background: var(--bg);
+    border-right: 1px solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 10px;
+    animation: slideInLeft var(--dur-slow) var(--ease-out);
+  }
+  .server-pill {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 650;
+    font-size: 13px;
+    letter-spacing: -.02em;
+    transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .server-pill:hover {
+    background: var(--hover);
+    border-color: #2a2a2a;
+  }
+  .server-rail-divider {
+    width: 20px; height: 1px;
+    background: var(--line);
+    margin: 4px 0;
+  }
+
+  #channel-sidebar {
+    background: var(--panel);
+    border-right: 1px solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    animation: slideInLeft .4s var(--ease-out);
+  }
+  .server-header {
+    padding: 0 16px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -.02em;
+    color: var(--text);
+    border-bottom: 1px solid var(--line-soft);
+    flex-shrink: 0;
+  }
+  .channel-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 10px;
+  }
+  .channel-list-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #555;
+    padding: 0 8px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .channel-list-label button {
+    background: none; border: none; color: #555;
+    font-size: 15px; line-height: 1; padding: 2px 5px;
+    border-radius: 4px;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .channel-list-label button:hover { color: var(--text); background: var(--hover); }
+  .channel-list-label button:active { transform: scale(0.9); }
+  .channel-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .channel-item:hover {
+    background: var(--hover);
+    color: #ccc;
+  }
+  .channel-item:active { transform: scale(0.98); }
+  .channel-item.active {
+    background: var(--active);
+    color: var(--text);
+  }
+  .channel-item .hash {
+    color: #444;
+    font-size: 14px;
+    font-weight: 400;
+    transition: color var(--dur) var(--ease);
+  }
+  .channel-item.active .hash { color: #666; }
+
+  .user-footer {
+    height: 56px;
+    padding: 0 12px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--panel-2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .avatar-dot {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--active);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 650; color: var(--text); font-size: 12px;
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .avatar-dot::after {
+    content: '';
+    position: absolute; bottom: -2px; right: -2px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--online);
+    border: 2px solid var(--panel-2);
+    transition: background var(--dur) var(--ease);
+  }
+  .user-footer-name {
+    font-size: 13px;
+    font-weight: 560;
+    color: var(--text);
+    line-height: 1.25;
+    letter-spacing: -.01em;
+  }
+  .user-footer-handle {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.2;
+  }
+  .user-footer-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.2;
+  }
+  .rename-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 14px;
+    padding: 6px 7px;
+    border-radius: 5px;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur) var(--ease);
+    flex-shrink: 0;
+  }
+  .rename-btn:hover {
+    color: var(--text);
+    background: var(--hover);
+  }
+  .rename-btn:active { transform: scale(0.92); }
+  #main-chat {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    min-width: 0;
+    animation: fadeIn .45s var(--ease-out);
+  }
+  .chat-header {
+    height: 52px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .chat-header .hash {
+    color: #444;
+    font-weight: 400;
+    font-size: 16px;
+  }
+  #current-channel-name {
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 8px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .msg-group {
+    display: flex;
+    gap: 14px;
+    padding: 10px 16px;
+    margin-top: 4px;
+    border-radius: var(--radius);
+    transition: background var(--dur) var(--ease);
+    animation: msgIn .3s var(--ease-out) both;
+  }
+  .msg-group:hover { background: var(--hover); }
+  .msg-avatar {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--active);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 650; font-size: 12px;
+    flex-shrink: 0;
+    color: var(--text);
+    margin-top: 1px;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-meta {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px;
+  }
+  .msg-author {
+    font-weight: 560;
+    font-size: 13.5px;
+    color: var(--text);
+    letter-spacing: -.01em;
+  }
+  .msg-handle {
+    font-size: 12px;
+    font-weight: 450;
+    color: #555;
+    letter-spacing: 0;
+  }
+  .msg-time {
+    font-size: 11px;
+    color: #444;
+    transition: color var(--dur) var(--ease);
+  }
+  .msg-group:hover .msg-time { color: #666; }
+  .msg-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #ccc;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg-image {
+    margin-top: 8px;
+    max-width: 320px;
+    max-height: 320px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    display: block;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .msg-image:hover {
+    opacity: .92;
+    border-color: #2a2a2a;
+    transform: scale(1.01);
+  }
+  .system-msg {
+    text-align: center;
+    color: #444;
+    font-size: 12px;
+    padding: 16px 8px;
+    letter-spacing: .02em;
+    animation: fadeIn var(--dur) var(--ease);
+  }
+  .empty-channel {
+    margin: auto;
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 20px;
+    animation: fadeUp var(--dur-slow) var(--ease-out);
+  }
+  .empty-channel .big-hash {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    color: #444;
+    margin: 0 auto 18px;
+    transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .empty-channel .empty-title {
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -.03em;
+    margin-bottom: 8px;
+  }
+  .empty-channel p {
+    font-size: 13px;
+    color: #555;
+    max-width: 280px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .composer-area {
+    padding: 12px 16px 20px;
+    flex-shrink: 0;
+  }
+  #image-preview-wrap {
+    display: none;
+    padding: 12px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    align-items: center;
+    gap: 10px;
+    animation: fadeUp .25s var(--ease-out);
+  }
+  #image-preview-wrap img {
+    height: 52px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    transition: opacity var(--dur) var(--ease);
+  }
+  #image-preview-remove {
+    background: var(--active);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    line-height: 1;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  #image-preview-remove:hover { color: var(--text); background: var(--hover); }
+  #image-preview-remove:active { transform: scale(0.9); }
+  .composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .composer:focus-within {
+    border-color: #2a2a2a;
+    background: #0a0a0a;
+  }
+  .composer button.icon-btn {
+    background: var(--active);
+    border: 1px solid var(--line);
+    color: #555;
+    width: 32px; height: 32px;
+    border-radius: 7px;
+    font-size: 16px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .composer button.icon-btn:hover {
+    color: var(--text);
+    background: var(--hover);
+    border-color: #2a2a2a;
+  }
+  .composer button.icon-btn:active { transform: scale(0.92); }
+  .composer textarea {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    resize: none;
+    max-height: 120px;
+    padding: 7px 4px;
+    line-height: 1.5;
+    transition: color var(--dur) var(--ease);
+  }
+  .composer textarea:focus { outline: none; }
+  .composer textarea::placeholder { color: #444; transition: color var(--dur) var(--ease); }
+  .composer textarea:focus::placeholder { color: #555; }
+  .send-btn {
+    background: var(--text);
+    border: none;
+    color: #000;
+    width: 32px; height: 32px;
+    border-radius: 7px;
+    font-size: 13px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .send-btn:hover { opacity: .85; }
+  .send-btn:active { transform: scale(0.92); }
+  .send-btn:disabled { opacity: .35; cursor: default; transform: none; }
+
+  #member-sidebar {
+    background: var(--panel);
+    border-left: 1px solid var(--line-soft);
+    padding: 20px 10px 16px;
+    overflow-y: auto;
+    animation: slideInRight .4s var(--ease-out);
+  }
+  .member-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #555;
+    padding: 0 8px 10px;
+  }
+  .member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: var(--radius);
+    cursor: default;
+    transition: background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+    animation: fadeIn .3s var(--ease-out) both;
+  }
+  .member-item:hover { background: var(--hover); }
+  .member-avatar {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--active);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 650; font-size: 11px; color: var(--text);
+    position: relative;
+    flex-shrink: 0;
+    transition: opacity var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .status-dot {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 2px solid var(--panel);
+    transition: background var(--dur) var(--ease);
+  }
+  .status-dot.online { background: var(--online); }
+  .status-dot.offline { background: var(--offline); }
+  .member-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .member-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccc;
+    letter-spacing: -.01em;
+    transition: color var(--dur) var(--ease);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .member-name.offline-name { color: #555; }
+  .member-handle {
+    font-size: 11px;
+    color: #444;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .member-item.offline-item .member-avatar { opacity: .55; }
+  .member-item.offline-item .member-handle { color: #333; }
+
+  #lightbox {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.92);
+    z-index: 300;
+    align-items: center; justify-content: center;
+    cursor: zoom-out;
+    animation: fadeIn .25s var(--ease-out);
+  }
+  #lightbox img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    border: 1px solid #222;
+    animation: fadeScale .3s var(--ease-out);
+  }
+
+  #new-channel-modal,
+  #rename-modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 250;
+    align-items: center; justify-content: center;
+    animation: fadeIn .22s var(--ease-out);
+  }
+  .modal-box {
+    width: 400px;
+    max-width: 90vw;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    animation: fadeScale .28s var(--ease-out);
+  }
+  .modal-box .modal-header { padding: 24px 24px 0; }
+  .modal-box h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+  .modal-box .modal-body { padding: 0 24px 20px; }
+  .modal-box input {
+    width: 100%;
+    background: var(--input);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 11px 12px;
+    font-size: 14px;
+    font-family: var(--font);
+    transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .modal-box input:focus {
+    border-color: #333;
+    background: #101010;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--panel-2);
+  }
+  .modal-actions button {
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    border: none;
+    font-size: 13px;
+    font-weight: 530;
+    font-family: var(--font);
+    transition: opacity var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .modal-cancel {
+    background: none;
+    color: var(--muted);
+  }
+  .modal-cancel:hover { color: var(--text); }
+  .modal-cancel:active { transform: scale(0.97); }
+  .modal-confirm {
+    background: var(--text);
+    color: #000;
+  }
+  .modal-confirm:hover { opacity: .88; }
+  .modal-confirm:active { transform: scale(0.97); }
+
+  /* desktop-only / mobile-only helpers */
+  .mobile-only { display: none !important; }
+
+  /* mobile drawer backdrop */
+  #mobile-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 180;
+    animation: fadeIn .2s var(--ease-out);
+  }
+  #mobile-backdrop.show { display: block; }
+
+  @media (max-width: 820px) {
+    .mobile-only { display: flex !important; }
+    .desktop-only { display: none !important; }
+
+    #app {
+      grid-template-columns: 1fr;
+      grid-template-rows: 100vh;
+      position: relative;
+    }
+
+    #server-rail { display: none; }
+
+    /* channel sidebar = left drawer */
+    #channel-sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(280px, 82vw);
+      z-index: 200;
+      transform: translateX(-105%);
+      transition: transform .28s var(--ease-out);
+      border-right: 1px solid var(--line);
+      animation: none;
+      box-shadow: none;
+    }
+    #channel-sidebar.open {
+      transform: translateX(0);
+      box-shadow: 8px 0 32px rgba(0,0,0,.45);
+    }
+    .server-header {
+      font-size: 14px !important;
+      padding: 0 16px !important;
+      justify-content: flex-start !important;
+    }
+    .server-header::after { content: none !important; }
+    .channel-list-label span.label-text,
+    .channel-item span.label-text { display: inline !important; }
+    .user-footer-name, .user-footer-handle, .user-footer-sub {
+      display: block !important;
+    }
+
+    /* member sidebar = right drawer */
+    #member-sidebar {
+      display: block;
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(280px, 82vw);
+      z-index: 200;
+      transform: translateX(105%);
+      transition: transform .28s var(--ease-out);
+      border-left: 1px solid var(--line);
+      animation: none;
+      background: var(--panel);
+      padding: 16px 10px 20px;
+      overflow-y: auto;
+      box-shadow: none;
+    }
+    #member-sidebar.open {
+      transform: translateX(0);
+      box-shadow: -8px 0 32px rgba(0,0,0,.45);
+    }
+
+    #main-chat {
+      width: 100%;
+      min-width: 0;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    .chat-header {
+      height: 56px;
+      padding: 0 8px 0 4px;
+      gap: 4px;
+      position: relative;
+      z-index: 10;
+    }
+    .chat-header .hash { display: none; }
+    #current-channel-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 15px;
+    }
+
+    .mob-header-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      color: #888;
+      border-radius: 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+    }
+    .mob-header-btn:hover,
+    .mob-header-btn:active {
+      background: var(--hover);
+      color: var(--text);
+    }
+
+    #messages {
+      padding: 8px 4px 0;
+    }
+    .msg-group {
+      padding: 10px 12px;
+      gap: 12px;
+    }
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 11px;
+    }
+    .msg-image {
+      max-width: min(280px, 75vw);
+    }
+
+    .composer-area {
+      padding: 8px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    .composer {
+      padding: 6px 8px;
+    }
+    .composer button.icon-btn,
+    .send-btn {
+      width: 36px;
+      height: 36px;
+    }
+    .composer textarea {
+      font-size: 16px; /* iOS zoom prevent */
+      padding: 8px 4px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 100%;
+      min-height: 100%;
+      border-radius: 0;
+      border: none;
+      padding: 48px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      animation: fadeIn var(--dur-slow) var(--ease-out);
+    }
+    #login-screen {
+      align-items: stretch;
+    }
+    .login-box h1 { font-size: 32px; }
+    .modal-box {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 14px 14px 0 0;
+      margin-top: auto;
+      max-height: 90vh;
+    }
+    #new-channel-modal,
+    #rename-modal {
+      align-items: flex-end;
+    }
+    .modal-box .modal-header { padding: 20px 20px 0; }
+    .modal-box .modal-body { padding: 0 20px 16px; }
+    .modal-actions { padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)); }
+
+    .channel-item {
+      padding: 12px 12px;
+      font-size: 15px;
+    }
+    .member-item {
+      padding: 10px 8px;
+    }
+  }
+
+  @media (max-width: 820px) and (prefers-reduced-motion: reduce) {
+    #channel-sidebar,
+    #member-sidebar {
+      transition: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="boot-error-screen">
+  <div class="boot-error-box">
+    <h2>読み込みエラー</h2>
+    <p id="boot-error-text">Firebaseライブラリの読み込みに失敗しました。インターネット接続を確認して、ページを再読み込みしてください。</p>
+  </div>
+</div>
+
+<div id="login-screen" style="display:none;">
+  <div class="login-box">
+    <div class="eyebrow">こよたdsc</div>
+    <h1>表示名を変更</h1>
+    <p class="sub">固有の @ID は自動発行され、変更できません。チャットでは「表示名 @ID」で表示されます。</p>
+    <label class="field-label">表示名</label>
+    <input type="text" id="display-name-input" placeholder="例: こよた" maxlength="20" autocomplete="off">
+    <button onclick="handleLogin()" id="login-btn">入室する</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<div id="mobile-backdrop" onclick="closeMobileDrawers()"></div>
+
+<div id="app">
+  <div id="server-rail">
+    <div class="server-pill">@</div>
+    <div class="server-rail-divider"></div>
+  </div>
+
+  <div id="channel-sidebar">
+    <div class="server-header">こよたdsc</div>
+    <div class="channel-list">
+      <div class="channel-list-label">
+        <span class="label-text">チャンネル</span>
+        <button onclick="openNewChannelModal()" title="チャンネルを追加">＋</button>
+      </div>
+      <div id="channel-items"></div>
+    </div>
+    <div class="user-footer">
+      <div class="avatar-dot" id="my-avatar">?</div>
+      <div style="min-width:0">
+        <div class="user-footer-name" id="my-name">-</div>
+        <div class="user-footer-handle" id="my-handle">@—</div>
+      </div>
+      <button class="rename-btn" onclick="openRenameModal()" title="表示名を変更">✎</button>
+    </div>
+  </div>
+
+  <div id="main-chat">
+    <div class="chat-header">
+      <button type="button" class="mob-header-btn mobile-only" id="btn-open-channels" onclick="openMobileChannels()" aria-label="チャンネル">☰</button>
+      <span class="hash">#</span>
+      <span id="current-channel-name">-</span>
+      <button type="button" class="mob-header-btn mobile-only" id="btn-open-members" onclick="openMobileMembers()" aria-label="メンバー">👥</button>
+    </div>
+    <div id="messages"></div>
+    <div class="composer-area">
+      <div id="image-preview-wrap">
+        <img id="image-preview-img" src="">
+        <button id="image-preview-remove" onclick="removeImagePreview()">✕</button>
+      </div>
+      <div class="composer">
+        <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="画像を送信">＋</button>
+        <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+        <textarea id="message-input" placeholder="メッセージを送信..." rows="1"></textarea>
+        <button class="send-btn" onclick="sendMessage()">→</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="member-sidebar">
+    <div class="member-section-label" id="online-count-label">オンライン — 0</div>
+    <div id="online-members"></div>
+    <div class="member-section-label" id="offline-count-label" style="margin-top:18px;">オフライン — 0</div>
+    <div id="offline-members"></div>
+  </div>
+</div>
+
+<div id="new-channel-modal">
+  <div class="modal-box">
+    <div class="modal-header"><h3>チャンネルを作成</h3></div>
+    <div class="modal-body">
+      <label class="field-label">チャンネル名</label>
+      <input type="text" id="new-channel-input" placeholder="雑談" maxlength="24">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeNewChannelModal()">キャンセル</button>
+      <button class="modal-confirm" onclick="confirmNewChannel()">作成する</button>
+    </div>
+  </div>
+</div>
+
+<div id="rename-modal">
+  <div class="modal-box">
+    <div class="modal-header"><h3>表示名を変更</h3></div>
+    <div class="modal-body">
+      <label class="field-label">新しい表示名</label>
+      <input type="text" id="rename-input" placeholder="例: こよた" maxlength="20">
+      <p style="margin-top:10px;font-size:12px;color:#555;line-height:1.5;">@ID は変わりません。過去のメッセージの表示名は更新されません。</p>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeRenameModal()">キャンセル</button>
+      <button class="modal-confirm" onclick="confirmRename()">変更する</button>
+    </div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'">
+  <img id="lightbox-img" src="">
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+/* ===== firebase config (固定値) ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD2fodvaBpoCJwA4H9-B5mv8Tgzo8_aP_E",
+  authDomain: "web-ui-internal-66a6b.firebaseapp.com",
+  databaseURL: "https://web-ui-internal-66a6b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "web-ui-internal-66a6b",
+  storageBucket: "web-ui-internal-66a6b.firebasestorage.app",
+  messagingSenderId: "493809959219",
+  appId: "1:493809959219:web:355c537dd1e74f96a9be46"
+};
+
+/* ===== storage utils (localStorage: file://でも確実に動く) ===== */
+function setCookie(name, value){
+  try{ localStorage.setItem(name, value); }catch(e){}
+}
+function getCookie(name){
+  try{ return localStorage.getItem(name); }catch(e){ return null; }
+}
+function deleteCookie(name){
+  try{ localStorage.removeItem(name); }catch(e){}
+}
+function genUserId(){
+  return 'u_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+}
+/* 変更不可の固有 @ID（入室時に一度だけ発行） */
+function genHandle(){
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let s = '';
+  for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return '@' + s;
+}
+function handleFromUserId(id){
+  if (!id) return '@unknown';
+  const raw = String(id).replace(/^u_/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return '@' + (raw.slice(0, 8) || 'user');
+}
+
+/* ===== state ===== */
+let db;
+let myUserId = null;
+let myName = null;
+let myHandle = null;
+let currentChannel = 'general';
+let channelsRef;
+let pendingImageDataUrl = null;
+let presenceRef;
+
+/* ===== boot ===== */
+window.addEventListener('DOMContentLoaded', () => {
+  if (typeof firebase === 'undefined'){
+    document.getElementById('boot-error-screen').style.display = 'flex';
+    return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+  }catch(e){
+    document.getElementById('boot-error-text').textContent = '初期化に失敗しました: ' + e.message;
+    document.getElementById('boot-error-screen').style.display = 'flex';
+    return;
+  }
+  bootLoginFlow();
+});
+
+function bootLoginFlow(){
+  const savedId = getCookie('yagura_user_id');
+  const savedName = getCookie('yagura_user_name');
+  let savedHandle = getCookie('yagura_user_handle');
+  if (savedId && savedName){
+    myUserId = savedId;
+    myName = savedName;
+    // 既存ユーザーで handle が無い場合は userId から固定生成して保存（変更不可）
+    if (!savedHandle || savedHandle.charAt(0) !== '@'){
+      savedHandle = handleFromUserId(savedId);
+      setCookie('yagura_user_handle', savedHandle);
+    }
+    myHandle = savedHandle;
+    enterApp();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    const input = document.getElementById('display-name-input');
+    input.focus();
+    input.addEventListener('keydown', e=>{
+      if (e.key === 'Enter') handleLogin();
+    });
+  }
+}
+
+function handleLogin(){
+  const nameInput = document.getElementById('display-name-input');
+  const name = nameInput.value.trim();
+  const errEl = document.getElementById('login-error');
+  if (!name){
+    errEl.textContent = '表示名を入力してください。';
+    return;
+  }
+  if (name.length > 20){
+    errEl.textContent = '20文字以内で入力してください。';
+    return;
+  }
+  myUserId = genUserId();
+  myName = name;
+  myHandle = genHandle(); 
+  setCookie('yagura_user_id', myUserId);
+  setCookie('yagura_user_name', myName);
+  setCookie('yagura_user_handle', myHandle);
+  nameInput.value = '';
+  document.getElementById('login-screen').style.display = 'none';
+  enterApp();
+}
+
+function enterApp(){
+  document.getElementById('app').classList.add('active');
+  document.getElementById('my-name').textContent = myName;
+  document.getElementById('my-handle').textContent = myHandle || '';
+  document.getElementById('my-avatar').textContent = myName.charAt(0).toUpperCase();
+
+  setupPresence();
+  setupChannels();
+  setupMembers();
+  switchChannel('general');
+
+  const ta = document.getElementById('message-input');
+  ta.addEventListener('input', ()=>{
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+  });
+  ta.addEventListener('keydown', e=>{
+    if (e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  const renameInput = document.getElementById('rename-input');
+  if (renameInput){
+    renameInput.addEventListener('keydown', e=>{
+      if (e.key === 'Enter'){ e.preventDefault(); confirmRename(); }
+      if (e.key === 'Escape'){ closeRenameModal(); }
+    });
+  }
+}
+
+/* ===== presence ===== */
+function setupPresence(){
+  presenceRef = db.ref('presence/' + myUserId);
+  const connectedRef = db.ref('.info/connected');
+  connectedRef.on('value', snap=>{
+    if (snap.val() === true){
+      presenceRef.onDisconnect().remove();
+      presenceRef.set({
+        name: myName,
+        handle: myHandle,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+      });
+      db.ref('known_users/' + myUserId).set({
+        name: myName,
+        handle: myHandle
+      });
+    }
+  });
+}
+
+function setupMembers(){
+  let latestKnown = {};
+  let latestOnline = {};
+
+  db.ref('known_users').on('value', snap=>{
+    latestKnown = snap.val() || {};
+    renderMemberLists(latestKnown, latestOnline);
+  });
+
+  db.ref('presence').on('value', snap=>{
+    latestOnline = snap.val() || {};
+    renderMemberLists(latestKnown, latestOnline);
+  });
+}
+
+function renderMemberLists(known, online){
+  const onlineWrap = document.getElementById('online-members');
+  const offlineWrap = document.getElementById('offline-members');
+  onlineWrap.innerHTML = '';
+  offlineWrap.innerHTML = '';
+  let onlineCount = 0, offlineCount = 0;
+
+  Object.keys(known).forEach(id=>{
+    const name = known[id].name || '不明';
+    const handle = known[id].handle || handleFromUserId(id);
+    const isOnline = !!online[id];
+    const item = document.createElement('div');
+    item.className = 'member-item' + (isOnline ? '' : ' offline-item');
+    item.innerHTML = `
+      <div class="member-avatar">${escapeHtml(name.charAt(0).toUpperCase())}
+        <div class="status-dot ${isOnline?'online':'offline'}"></div>
+      </div>
+      <div class="member-info">
+        <div class="member-name ${isOnline?'':'offline-name'}">${escapeHtml(name)}</div>
+        <div class="member-handle">${escapeHtml(handle)}</div>
+      </div>
+    `;
+    if (isOnline){ onlineWrap.appendChild(item); onlineCount++; }
+    else { offlineWrap.appendChild(item); offlineCount++; }
+  });
+
+  document.getElementById('online-count-label').textContent = `オンライン — ${onlineCount}`;
+  document.getElementById('offline-count-label').textContent = `オフライン — ${offlineCount}`;
+}
+
+/* ===== channels ===== */
+function setupChannels(){
+  channelsRef = db.ref('channels');
+  channelsRef.child('general').once('value').then(snap=>{
+    if (!snap.exists()){
+      channelsRef.child('general').set({ name: 'general', createdAt: firebase.database.ServerValue.TIMESTAMP });
+    }
+  });
+  channelsRef.on('value', snap=>{
+    const data = snap.val() || {};
+    renderChannelList(data);
+  });
+}
+
+function renderChannelList(data){
+  const wrap = document.getElementById('channel-items');
+  wrap.innerHTML = '';
+  const ids = Object.keys(data).sort((a,b)=> (data[a].createdAt||0) - (data[b].createdAt||0));
+  ids.forEach(id=>{
+    const ch = data[id];
+    const item = document.createElement('div');
+    item.className = 'channel-item' + (id === currentChannel ? ' active' : '');
+    item.innerHTML = `<span class="hash">#</span><span class="label-text">${escapeHtml(ch.name)}</span>`;
+    item.onclick = () => switchChannel(id);
+    wrap.appendChild(item);
+  });
+}
+
+
+
+/* ===== mobile drawers ===== */
+function openMobileChannels(){
+  closeMobileDrawers();
+  document.getElementById('channel-sidebar').classList.add('open');
+  document.getElementById('mobile-backdrop').classList.add('show');
+}
+function openMobileMembers(){
+  closeMobileDrawers();
+  document.getElementById('member-sidebar').classList.add('open');
+  document.getElementById('mobile-backdrop').classList.add('show');
+}
+function closeMobileDrawers(){
+  document.getElementById('channel-sidebar').classList.remove('open');
+  document.getElementById('member-sidebar').classList.remove('open');
+  document.getElementById('mobile-backdrop').classList.remove('show');
+}
+
+function openRenameModal(){
+  const modal = document.getElementById('rename-modal');
+  const input = document.getElementById('rename-input');
+  input.value = myName || '';
+  modal.style.display = 'flex';
+  input.focus();
+  input.select();
+}
+function closeRenameModal(){
+  document.getElementById('rename-modal').style.display = 'none';
+}
+function confirmRename(){
+  const input = document.getElementById('rename-input');
+  const name = input.value.trim();
+  if (!name){
+    input.focus();
+    return;
+  }
+  if (name.length > 20){
+    alert('20文字以内で入力してください。');
+    return;
+  }
+  myName = name;
+  setCookie('yagura_user_name', myName);
+  document.getElementById('my-name').textContent = myName;
+  document.getElementById('my-avatar').textContent = myName.charAt(0).toUpperCase();
+  if (presenceRef){
+    presenceRef.update({ name: myName });
+  }
+  if (myUserId && db){
+    db.ref('known_users/' + myUserId).update({ name: myName, handle: myHandle });
+  }
+  closeRenameModal();
+}
+
+function openNewChannelModal(){
+  document.getElementById('new-channel-modal').style.display = 'flex';
+  document.getElementById('new-channel-input').value = '';
+  document.getElementById('new-channel-input').focus();
+}
+function closeNewChannelModal(){
+  document.getElementById('new-channel-modal').style.display = 'none';
+}
+function confirmNewChannel(){
+  const input = document.getElementById('new-channel-input');
+  let name = input.value.trim();
+  if (!name) return;
+  name = name.replace(/\s+/g,'-').toLowerCase().slice(0,24);
+  const id = 'c_' + Math.random().toString(36).slice(2,9);
+  channelsRef.child(id).set({ name, createdAt: firebase.database.ServerValue.TIMESTAMP });
+  closeNewChannelModal();
+  switchChannel(id);
+}
+
+function switchChannel(channelId){
+  currentChannel = channelId;
+  db.ref('channels/' + channelId).once('value').then(snap=>{
+    const ch = snap.val();
+    document.getElementById('current-channel-name').textContent = ch ? ch.name : channelId;
+  });
+  channelsRef.once('value').then(snap=>renderChannelList(snap.val() || {}));
+  loadMessages(channelId);
+  closeMobileDrawers();
+}
+
+/* ===== messages ===== */
+let currentMsgListener = null;
+let currentMsgRefPath = null;
+
+function loadMessages(channelId){
+  const msgsWrap = document.getElementById('messages');
+  msgsWrap.innerHTML = '<div class="system-msg">読み込み中...</div>';
+
+  if (currentMsgListener && currentMsgRefPath){
+    db.ref(currentMsgRefPath).off('value', currentMsgListener);
+  }
+
+  const refPath = 'messages/' + channelId;
+  currentMsgRefPath = refPath;
+  const ref = db.ref(refPath).limitToLast(200);
+
+  currentMsgListener = snap=>{
+    const data = snap.val() || {};
+    renderMessages(data);
+  };
+  ref.on('value', currentMsgListener);
+}
+
+function renderMessages(data){
+  const wrap = document.getElementById('messages');
+  const ids = Object.keys(data).sort((a,b)=> (data[a].ts||0) - (data[b].ts||0));
+
+  if (ids.length === 0){
+    wrap.innerHTML = `<div class="empty-channel"><div class="big-hash">#</div><div class="empty-title">#${escapeHtml(document.getElementById('current-channel-name').textContent)}</div><p>まだメッセージがありません。最初のメッセージを送ってみましょう。</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = '';
+  let lastAuthor = null;
+  let lastGroupEl = null;
+  let lastTs = 0;
+
+  ids.forEach(id=>{
+    const m = data[id];
+    const sameAuthor = m.userId === lastAuthor && (m.ts - lastTs) < 5*60*1000;
+
+    if (sameAuthor && lastGroupEl){
+      const body = lastGroupEl.querySelector('.msg-body');
+      body.appendChild(buildMessageContent(m));
+    } else {
+      const group = document.createElement('div');
+      group.className = 'msg-group';
+      const avatar = document.createElement('div');
+      avatar.className = 'msg-avatar';
+      avatar.textContent = (m.name || '?').charAt(0).toUpperCase();
+      const body = document.createElement('div');
+      body.className = 'msg-body';
+
+      const meta = document.createElement('div');
+      meta.className = 'msg-meta';
+      const handle = m.handle || handleFromUserId(m.userId);
+      meta.innerHTML = `<span class="msg-author">${escapeHtml(m.name)}</span><span class="msg-handle">${escapeHtml(handle)}</span><span class="msg-time">${formatTime(m.ts)}</span>`;
+      body.appendChild(meta);
+      body.appendChild(buildMessageContent(m));
+
+      group.appendChild(avatar);
+      group.appendChild(body);
+      wrap.appendChild(group);
+      lastGroupEl = group;
+    }
+    lastAuthor = m.userId;
+    lastTs = m.ts;
+  });
+
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function buildMessageContent(m){
+  const container = document.createElement('div');
+  if (m.text){
+    const textEl = document.createElement('div');
+    textEl.className = 'msg-text';
+    textEl.textContent = m.text;
+    container.appendChild(textEl);
+  }
+  if (m.imageUrl){
+    const img = document.createElement('img');
+    img.className = 'msg-image';
+    img.src = m.imageUrl;
+    img.onclick = ()=>{
+      document.getElementById('lightbox-img').src = m.imageUrl;
+      document.getElementById('lightbox').style.display = 'flex';
+    };
+    container.appendChild(img);
+  }
+  return container;
+}
+
+function formatTime(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  if (isToday) return `${hh}:${mm}`;
+  return `${d.getMonth()+1}/${d.getDate()} ${hh}:${mm}`;
+}
+
+function escapeHtml(str){
+  if (str === undefined || str === null) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+/* ===== sending ===== */
+function handleFileSelect(event){
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')){
+    alert('画像ファイルを選択してください。');
+    return;
+  }
+  if (file.size > 10*1024*1024){
+    alert('10MB以下の画像を選択してください。');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e=>{
+    compressImage(e.target.result, 1000, 0.7).then(compressed=>{
+      pendingImageDataUrl = compressed;
+      document.getElementById('image-preview-img').src = pendingImageDataUrl;
+      document.getElementById('image-preview-wrap').style.display = 'flex';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function compressImage(dataUrl, maxDim, quality){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim){
+        if (w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+        else { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = ()=> resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+function removeImagePreview(){
+  pendingImageDataUrl = null;
+  document.getElementById('image-preview-wrap').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+async function sendMessage(){
+  const ta = document.getElementById('message-input');
+  const text = ta.value.trim();
+  if (!text && !pendingImageDataUrl) return;
+
+  const msgData = {
+    userId: myUserId,
+    name: myName,
+    handle: myHandle,
+    ts: firebase.database.ServerValue.TIMESTAMP
+  };
+  if (text) msgData.text = text;
+  if (pendingImageDataUrl) msgData.imageUrl = pendingImageDataUrl;
+
+  const sendBtn = document.querySelector('.send-btn');
+  sendBtn.disabled = true;
+
+  try{
+    await db.ref('messages/' + currentChannel).push(msgData);
+    ta.value = '';
+    ta.style.height = 'auto';
+    removeImagePreview();
+  }catch(e){
+    alert('送信に失敗しました: ' + e.message + (e.message.includes('PERMISSION') ? '\n\n(Firebaseのルールで読み書きが許可されているか確認してください)' : ''));
+  }finally{
+    sendBtn.disabled = false;
+    ta.focus();
+  }
+}
+</script>
+</body>
+</html>
