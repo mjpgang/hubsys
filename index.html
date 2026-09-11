@@ -1,26 +1,662 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Google</title>
+
 <style>
-:root{color-scheme:dark;--bg:#000;--panel:#080808;--line:#242424;--text:#eee;--muted:#777;--hover:#111}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:980px;margin:auto;padding:56px 24px 80px}.top{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:80px}.brand{font-weight:650;letter-spacing:-.03em;font-size:20px}.status{font-size:11px;color:#666;letter-spacing:.12em}.intro{margin-bottom:42px}.eyebrow{font-size:11px;color:#555;letter-spacing:.16em;text-transform:uppercase}.intro h1{font-size:clamp(36px,7vw,66px);line-height:1.05;letter-spacing:-.065em;font-weight:600;margin:14px 0}.intro p{color:#777;margin:0;max-width:420px}.section{margin-top:48px}.section-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:0}.section h2{font-size:12px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;margin:0}.count{color:#555;font-size:12px}.item{display:flex;align-items:center;gap:18px;padding:19px 0;border-bottom:1px solid #171717;text-decoration:none;color:inherit;transition:background .18s,padding .18s}.item:hover{background:var(--hover);padding-left:12px;padding-right:12px}.num{color:#444;font-variant-numeric:tabular-nums;width:25px}.item-main{flex:1;min-width:0}.name{font-size:15px;font-weight:520;letter-spacing:-.015em}.desc{font-size:12px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.arrow{color:#555}.empty{padding:24px 0;color:#555}.link-url{font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.footer{margin-top:80px;color:#444;font-size:11px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}@media(max-width:520px){main{padding:32px 18px 60px}.top{margin-bottom:60px}.item{gap:10px}.num{width:18px}.name{font-size:14px}}
-</style></head>
-<body><main>
-<header class="top"><div class="brand">KoyotaHUB</div><div class="status">REPOSITORY / HUB</div></header>
-<section class="intro"><div class="eyebrow">A small collection</div><h1>Works, quietly.</h1><p>Useful things, small experiments, and links collected in one place.</p></section>
-<section class="section"><div class="section-head"><h2>Works</h2><span class="count" id="workCount">—</span></div><div id="works"><div class="empty">Loading repository…</div></div></section>
-<section class="section"><div class="section-head"><h2>Links</h2><span class="count" id="linkCount">—</span></div><div id="links"><div class="empty">Loading links…</div></div></section>
-<footer class="footer"><span>hubsys · github pages</span><span id="updated">—</span></footer>
+:root{
+  color-scheme:dark;
+  --bg:#000;
+  --panel:#080808;
+  --line:#242424;
+  --text:#eee;
+  --muted:#777;
+  --hover:#111
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:14px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,
+       BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+
+main{
+  max-width:980px;
+  margin:auto;
+  padding:56px 24px 80px
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  margin-bottom:80px
+}
+
+.brand{
+  font-weight:650;
+  letter-spacing:-.03em;
+  font-size:20px
+}
+
+.status{
+  font-size:11px;
+  color:#666;
+  letter-spacing:.12em
+}
+
+.intro{
+  margin-bottom:42px
+}
+
+.eyebrow{
+  font-size:11px;
+  color:#555;
+  letter-spacing:.16em;
+  text-transform:uppercase
+}
+
+.intro h1{
+  font-size:clamp(36px,7vw,66px);
+  line-height:1.05;
+  letter-spacing:-.065em;
+  font-weight:600;
+  margin:14px 0
+}
+
+.intro p{
+  color:#777;
+  margin:0;
+  max-width:420px
+}
+
+.section{
+  margin-top:48px
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  border-bottom:1px solid var(--line);
+  padding-bottom:12px;
+  margin-bottom:0
+}
+
+.section h2{
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  margin:0
+}
+
+.count{
+  color:#555;
+  font-size:12px
+}
+
+.item{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:19px 0;
+  border-bottom:1px solid #171717;
+  text-decoration:none;
+  color:inherit;
+  transition:background .18s,padding .18s
+}
+
+.item:hover{
+  background:var(--hover);
+  padding-left:12px;
+  padding-right:12px
+}
+
+.num{
+  color:#444;
+  font-variant-numeric:tabular-nums;
+  width:25px
+}
+
+.item-main{
+  flex:1;
+  min-width:0
+}
+
+.name{
+  font-size:15px;
+  font-weight:520;
+  letter-spacing:-.015em
+}
+
+.desc{
+  font-size:12px;
+  color:#666;
+  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.arrow{
+  color:#555
+}
+
+.empty{
+  padding:24px 0;
+  color:#555
+}
+
+.link-url{
+  font-size:12px;
+  color:#666;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+
+.footer{
+  margin-top:80px;
+  color:#444;
+  font-size:11px;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap
+}
+
+@media(max-width:520px){
+  main{
+    padding:32px 18px 60px
+  }
+
+  .top{
+    margin-bottom:60px
+  }
+
+  .item{
+    gap:10px
+  }
+
+  .num{
+    width:18px
+  }
+
+  .name{
+    font-size:14px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<main>
+
+<header class="top">
+  <div class="brand">KoyotaHUB</div>
+  <div class="status" id="status">CONNECTING</div>
+</header>
+
+<section class="intro">
+  <div class="eyebrow">A small collection</div>
+  <h1>Koyota HUB.</h1>
+  <p>Useful things, small experiments, and links collected in one place.</p>
+</section>
+
+<section class="section">
+
+  <div class="section-head">
+    <h2>Works</h2>
+    <span class="count" id="workCount">—</span>
+  </div>
+
+  <div id="works">
+    <div class="empty">Loading repository…</div>
+  </div>
+
+</section>
+
+<section class="section">
+
+  <div class="section-head">
+    <h2>Links</h2>
+    <span class="count" id="linkCount">—</span>
+  </div>
+
+  <div id="links">
+    <div class="empty">Loading links…</div>
+  </div>
+
+</section>
+
+<footer class="footer">
+  <span>KoyotaHUB · github pages</span>
+  <span id="updated">—</span>
+</footer>
+
 </main>
+
 <script>
-const OWNER='mjpgang',REPO='hubsys',BRANCH='main';
+
+const OWNER='mjpgang';
+const REPO='hubsys';
+const BRANCH='main';
+
+const WORK_HOST='https://koyota.f5.si/';
+
+const API_BASE=
+  'https://api.github.com/repos/'
+  +OWNER+'/'+REPO+'/contents/';
+
 const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(path){const r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path+'?ref='+BRANCH,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw Error(r.status);return r.json()}
-function fileName(name){const m=name.match(/^(.*?)(?::(.*?))?\.html$/i);return m?{name:m[1],desc:m[2]||'HTML work'}:null}
-function renderWorks(files){const items=files.filter(f=>f.type==='file'&&/\.html$/i.test(f.name)&&f.name.toLowerCase()!=='index.html').map(f=>({f,meta:fileName(f.name)})).filter(x=>x.meta);$('workCount').textContent=String(items.length).padStart(2,'0');$('works').innerHTML=items.length?items.map((x,i)=>`<a class="item" href="${esc(x.f.download_url||x.f.html_url)}" target="_blank" rel="noopener"><span class="num">${String(i+1).padStart(2,'0')}</span><span class="item-main"><div class="name">${esc(x.meta.name)}</div><div class="desc">${esc(x.meta.desc)}</div></span><span class="arrow">↗</span></a>`).join(''):'<div class="empty">No works found.</div>'}
-function renderLinks(text){const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).filter(x=>!x.startsWith('#'));const items=lines.map(x=>{const m=x.match(/^(.+?)\s*\|\s*(https?:\/\/\S+)$/);return m?{name:m[1],url:m[2]}:{name:x,url:x}}).filter(x=>/^https?:\/\//.test(x.url));$('linkCount').textContent=String(items.length).padStart(2,'0');$('links').innerHTML=items.length?items.map((x,i)=>`<a class="item" href="${esc(x.url)}" target="_blank" rel="noopener"><span class="num">${String(i+1).padStart(2,'0')}</span><span class="item-main"><div class="name">${esc(x.name)}</div><div class="link-url">${esc(x.url)}</div></span><span class="arrow">↗</span></a>`).join(''):'<div class="empty">No links found.</div>'}
-async function init(){try{const files=await api('');renderWorks(files);try{const r=await fetch('https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/link.txt');renderLinks(r.ok?await r.text():'')}catch{renderLinks('')} $('updated').textContent='SYNCED · '+new Date().toLocaleDateString('ja-JP')}catch(e){$('works').innerHTML='<div class="empty">Repository could not be loaded.</div>';$('links').innerHTML='<div class="empty">Check GitHub API access or repository visibility.</div>';console.error(e)}}init();
-</script></body></html>
+
+const esc=s=>String(s).replace(
+  /[&<>"']/g,
+  c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c])
+);
+
+
+/* ------------------------------
+   GitHub API
+------------------------------ */
+
+async function api(path=''){
+
+  const url=
+    API_BASE+
+    path+
+    '?ref='+
+    encodeURIComponent(BRANCH)+
+    '&_='+
+    Date.now();
+
+  const response=await fetch(url,{
+    method:'GET',
+    cache:'no-store',
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'Cache-Control':'no-cache',
+      'Pragma':'no-cache'
+    }
+  });
+
+  if(response.status===403 || response.status===429){
+
+    const retry=
+      Number(response.headers.get('Retry-After')) || 10;
+
+    throw new Error(
+      'RATE_LIMIT:'+retry
+    );
+  }
+
+  if(!response.ok){
+    throw new Error(
+      'HTTP_'+response.status
+    );
+  }
+
+  return response.json();
+}
+
+
+/* ------------------------------
+   Filename parser
+------------------------------ */
+
+function fileName(name){
+
+  const m=
+    name.match(
+      /^(.*?)(?::(.*?))?\.html$/i
+    );
+
+  return m
+    ?{
+        name:m[1],
+        desc:m[2]||'HTML work'
+      }
+    :null;
+}
+
+
+/* ------------------------------
+   Works
+------------------------------ */
+
+function renderWorks(files){
+
+  const items=
+    files
+      .filter(
+        f=>
+          f.type==='file' &&
+          /\.html$/i.test(f.name) &&
+          f.name.toLowerCase()!=='index.html'
+      )
+      .map(
+        f=>({
+          f,
+          meta:fileName(f.name)
+        })
+      )
+      .filter(x=>x.meta);
+
+  $('workCount').textContent=
+    String(items.length).padStart(2,'0');
+
+  $('works').innerHTML=
+    items.length
+
+    ?
+
+    items.map((x,i)=>`
+
+      <a
+        class="item"
+        href="${WORK_HOST}${encodeURIComponent(x.f.name)}"
+        target="_blank"
+        rel="noopener"
+      >
+
+        <span class="num">
+          ${String(i+1).padStart(2,'0')}
+        </span>
+
+        <span class="item-main">
+
+          <div class="name">
+            ${esc(x.meta.name)}
+          </div>
+
+          <div class="desc">
+            ${esc(x.meta.desc)}
+          </div>
+
+        </span>
+
+        <span class="arrow">↗</span>
+
+      </a>
+
+    `).join('')
+
+    :
+
+    '<div class="empty">No works found.</div>';
+}
+
+
+/* ------------------------------
+   Links
+------------------------------ */
+
+async function loadLinks(){
+
+  try{
+
+    const response=
+      await fetch(
+        'https://raw.githubusercontent.com/'
+
+        +OWNER+
+        '/'+
+        REPO+
+        '/'+
+        BRANCH+
+        '/link.txt?_='+
+        Date.now(),
+        {
+          cache:'no-store',
+          headers:{
+            'Cache-Control':'no-cache',
+            'Pragma':'no-cache'
+          }
+        }
+      );
+
+    if(!response.ok){
+      throw new Error('LINK_'+response.status);
+    }
+
+    const text=await response.text();
+
+    renderLinks(text);
+
+  }catch{
+
+    renderLinks('');
+
+  }
+}
+
+
+function renderLinks(text){
+
+  const lines=
+    text
+      .split(/\r?\n/)
+      .map(x=>x.trim())
+      .filter(Boolean)
+      .filter(x=>!x.startsWith('#'));
+
+  const items=
+    lines
+      .map(x=>{
+
+        const m=
+          x.match(
+            /^(.+?)\s*\|\s*(https?:\/\/\S+)$/
+          );
+
+        return m
+          ?{
+              name:m[1],
+              url:m[2]
+            }
+          :{
+              name:x,
+              url:x
+            };
+
+      })
+      .filter(
+        x=>/^https?:\/\//.test(x.url)
+      );
+
+  $('linkCount').textContent=
+    String(items.length).padStart(2,'0');
+
+  $('links').innerHTML=
+    items.length
+
+    ?
+
+    items.map((x,i)=>`
+
+      <a
+        class="item"
+        href="${esc(x.url)}"
+        target="_blank"
+        rel="noopener"
+      >
+
+        <span class="num">
+          ${String(i+1).padStart(2,'0')}
+        </span>
+
+        <span class="item-main">
+
+          <div class="name">
+            ${esc(x.name)}
+          </div>
+
+          <div class="link-url">
+            ${esc(x.url)}
+          </div>
+
+        </span>
+
+        <span class="arrow">↗</span>
+
+      </a>
+
+    `).join('')
+
+    :
+
+    '<div class="empty">No links found.</div>';
+}
+
+
+/* ------------------------------
+   Repository refresh
+------------------------------ */
+
+let refreshing=false;
+
+async function refresh(){
+
+  if(refreshing)return;
+
+  refreshing=true;
+
+  try{
+
+    $('status').textContent='SYNCING';
+
+    const files=await api('');
+
+    renderWorks(files);
+
+    await loadLinks();
+
+    const now=
+      new Date();
+
+    $('updated').textContent=
+      'SYNCED · '+
+      now.toLocaleTimeString(
+        'ja-JP',
+        {
+          hour:'2-digit',
+          minute:'2-digit',
+          second:'2-digit'
+        }
+      );
+
+    $('status').textContent='ONLINE';
+
+  }catch(error){
+
+    console.error(error);
+
+    if(
+      String(error.message)
+        .startsWith('RATE_LIMIT:')
+    ){
+
+      const seconds=
+        Number(
+          String(error.message)
+            .split(':')[1]
+        ) || 10;
+
+      $('status').textContent=
+        'RATE LIMITED';
+
+      /*
+       * API制限中はGitHubを殴り続けない
+       */
+
+      setTimeout(
+        refresh,
+        seconds*1000
+      );
+
+    }else{
+
+      $('status').textContent='OFFLINE';
+
+    }
+
+  }finally{
+
+    refreshing=false;
+
+  }
+
+}
+
+
+/* ------------------------------
+   高速自動更新
+------------------------------ */
+
+/*
+ * 5秒ごとにGitHub APIを確認。
+ *
+ * ただしブラウザのバックグラウンド化、
+ * ネットワークエラー、Rate Limit時には
+ * 自動的に抑制される。
+ */
+
+const REFRESH_INTERVAL=5000;
+
+setInterval(
+  refresh,
+  REFRESH_INTERVAL
+);
+
+
+/* ------------------------------
+   初回ロード
+------------------------------ */
+
+refresh();
+
+
+/* ------------------------------
+   タブ復帰時に即更新
+------------------------------ */
+
+document.addEventListener(
+  'visibilitychange',
+  ()=>{
+    if(
+      document.visibilityState==='visible'
+    ){
+      refresh();
+    }
+  }
+);
+
+
+/* ------------------------------
+   ページ復帰時
+------------------------------ */
+
+window.addEventListener(
+  'pageshow',
+  refresh
+);
+
+</script>
+
+</body>
+</html>
